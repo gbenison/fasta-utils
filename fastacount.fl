@@ -1,0 +1,34 @@
+
+/*
+ * GCB 1feb11
+ *
+ * Count FASTA sequences & their lengths.
+ */
+
+%x COMMENT
+%x SEQUENCE
+
+%{
+	int n_seq = 0;
+	int n_base = 0;
+        int n_skip = 0;
+
+	static void report_sequence() {
+                  printf("Sequence %d -- length %d (%d skips)\n",
+		          n_seq, n_base + n_skip, n_skip);
+			  }
+
+%}
+
+%%
+<INITIAL>[;>]	BEGIN(COMMENT);
+<COMMENT>\n	BEGIN(INITIAL);
+<INITIAL>[A-Z]|-	{BEGIN(SEQUENCE); ++n_seq; n_base = 0; n_skip = 0;}
+<SEQUENCE>[AGTC]  {++n_base;}
+<SEQUENCE>-     {++n_skip;}
+<SEQUENCE>[;>]	{
+                  BEGIN(COMMENT);
+		  report_sequence();
+                }
+<SEQUENCE><<EOF>> { report_sequence(); yyterminate();}
+<*>.|\n 	{/* default rule - gobble */}

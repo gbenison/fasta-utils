@@ -1,0 +1,48 @@
+/*
+ * GCB 1feb11
+ *
+ * Echo FASTA input sequences, omitting the first 'n' bases
+ * (where gaps are treated the same as ordinary bases)
+ */
+
+%x COMMENT
+%x SEQUENCE
+
+%{
+   #include <stdlib.h>
+   #include <assert.h>
+
+   int pos_idx = 0;
+   static int cutoff = 0;  /* default -- ID; take from command line */
+%}
+
+%%
+
+<INITIAL>[;>]       { ECHO; BEGIN(COMMENT); }
+<COMMENT>\n         { printf("\n"); BEGIN(INITIAL); }
+<COMMENT>.          ECHO;
+<INITIAL>[A-Z]|-    { BEGIN(SEQUENCE); pos_idx = 0; }
+<SEQUENCE>[AGTC]|-  { ++pos_idx;
+                      if (pos_idx > cutoff) ECHO;
+                    }
+<SEQUENCE>\n     { if (pos_idx > cutoff) printf("\n"); }
+<SEQUENCE>[;>]   { ECHO; BEGIN(COMMENT); pos_idx = 0; }
+<*>.|\n          { /* default rule -- gobble */ }
+
+%%
+
+int
+main(int argc, char *argv[])
+{
+  if (argc >= 2)
+  {
+    char *end;
+    cutoff = strtol(argv[1], &end, 0);
+    assert(*end == '\0');
+  }
+  yylex();
+}
+
+
+
+

@@ -1,0 +1,44 @@
+/*
+ * Report on contiguous sequence stretches in FASTA sequence files.
+ */
+
+%x COMMENT
+%x SEQUENCE
+
+%{
+	int seq_idx  = 0;  /* Sequence currently being processed */
+        int pos_idx  = 0;  /* Position (gap or base) within sequence */
+        int n_contig = 0;  /* Number of contiguous non-gaps in this chunk */
+
+	#define MIN_REPORT_SIZE 10
+
+	static void
+        report_last_contig()
+        {
+	  if (n_contig >= MIN_REPORT_SIZE)
+	    printf("  %6d -- %6d (%6d bp)\n",
+                   pos_idx - n_contig + 1, pos_idx, n_contig);
+        }
+
+%}
+
+%%
+<INITIAL>[;>]    BEGIN(COMMENT);
+<COMMENT>\n      BEGIN(INITIAL);
+<INITIAL>[A-Z]|- {BEGIN(SEQUENCE);
+                  n_contig = 0;
+                  pos_idx = 0;
+		  seq_idx++;
+		  printf("Sequence %d:\n", seq_idx);
+                 }
+<SEQUENCE>[AGTC] {++n_contig; ++pos_idx;}
+<SEQUENCE>-      { report_last_contig();
+                   n_contig = 0;
+		   pos_idx++;
+                 }
+<SEQUENCE>[;>]   {BEGIN(COMMENT);
+                  report_last_contig();
+                  n_contig = 0; pos_idx = 0;
+                 }
+<*>.|\n          { /* default rule -- gobble */ }
+
