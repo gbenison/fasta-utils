@@ -11,8 +11,19 @@
 %x SEQUENCE
 
 %{
+#include <stdlib.h>
+#include <getopt.h>
+#define NULL_FLAG NULL
+
    static const int column_width = 40;
    int n;
+
+   static const struct option my_options[] =
+   {
+	{"comment",	required_argument,	NULL_FLAG,	'c'},
+	{0,0,0,0}
+   };
+
 %}
 
 %%
@@ -21,7 +32,6 @@
 <INITIAL>[A-Z]|-	{
                           BEGIN(SEQUENCE);
                           n = 0;
-                          /* FIXME ensure comment */
                         }
 <SEQUENCE>[AGTC]|-  {if (n > 0 && ((n % column_width) == 0))
                        printf("\n");
@@ -32,3 +42,20 @@
 <SEQUENCE><<EOF>> { printf("\n"); yyterminate();}
 <*>.|\n 	{/* default rule - gobble */}
 
+%%
+
+int
+main(int argc, char *argv[])
+{
+  /* option parsing */
+
+  while (1)
+  {
+    int option_idx = 0;
+    int code = getopt_long(argc, argv, "c:", my_options, &option_idx);
+    if (code == -1) break;
+    else if (code == 'c') printf ("> %s\n", optarg);
+  }
+
+  yylex();
+}
