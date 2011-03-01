@@ -1,5 +1,8 @@
 
-all: fastacount fastagap fastatail fastahead
+all: fastacount fastagap fastatail fastahead fastalint
+
+fastalint: fastalint.yy.c
+	gcc -o$@ $< -lfl
 
 fastatail: fastatail.yy.c
 	gcc -o$@ $< -lfl
