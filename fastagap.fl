@@ -40,5 +40,6 @@
                   report_last_contig();
                   n_contig = 0; pos_idx = 0;
                  }
+<SEQUENCE><<EOF>> { report_last_contig(); yyterminate(); }
 <*>.|\n          { /* default rule -- gobble */ }
 
