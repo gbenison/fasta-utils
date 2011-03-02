@@ -57,5 +57,6 @@ main(int argc, char *argv[])
     else if (code == 'c') printf ("> %s\n", optarg);
   }
 
+  yyin = (optind < argc) ? fopen(argv[optind], "r") : stdin;
   yylex();
 }

@@ -1,7 +1,9 @@
 
+CFLAGS=-g
+
 all: fastacount fastagap fastatail fastahead fastalint
 
-fastalint: fastalint.yy.c
+fastalint: fastalint.yy.o
 	gcc -o$@ $< -lfl
 
 fastatail: fastatail.yy.c
