@@ -27,8 +27,9 @@
 %}
 
 %%
-<INITIAL>[;>]	BEGIN(COMMENT);
-<COMMENT>\n	BEGIN(INITIAL);
+<INITIAL>[;>]	{ BEGIN(COMMENT); ECHO; }
+<COMMENT>.      ECHO;
+<COMMENT>\n	{ BEGIN(INITIAL); ECHO; }
 <INITIAL>[A-Z]|-	{
                           BEGIN(SEQUENCE);
                           n = 0;
