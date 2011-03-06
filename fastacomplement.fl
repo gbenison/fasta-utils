@@ -13,6 +13,8 @@
   extern int   fb_count;
   extern char  fb_peek(int);
 
+  static const int column_width = 40;
+
   static char complement(char x)
   {
     switch (x) {
@@ -29,6 +31,8 @@
     int i;
     for (i = 0; i < fb_count; ++i)
     {
+      if ((i > 0) && ((i % column_width) == 0))
+        putchar('\n');
       putchar(complement(fb_peek(fb_count - i - 1)));
     }
     fb_clear();
