@@ -1,0 +1,46 @@
+/*
+ * GCB 3mar11
+ *
+ * Replace each sequence in a FASTA file with its reverse complement.
+ */
+
+%x COMMENT
+%x SEQUENCE
+
+%{
+  extern void  fb_clear();
+  extern void  fb_push(char);
+  extern int   fb_count;
+  extern char  fb_peek(int);
+
+  static char complement(char x)
+  {
+    switch (x) {
+      case 'G' : return 'C';
+      case 'C' : return 'G';
+      case 'A' : return 'T';
+      case 'T' : return 'A';
+      default  : return '-';
+    };
+  }
+
+  static void report_sequence()
+  {
+    int i;
+    for (i = 0; i < fb_count; ++i)
+    {
+      putchar(complement(fb_peek(fb_count - i - 1)));
+    }
+    fb_clear();
+  }
+%}
+
+%%
+<INITIAL>[;>]	    {BEGIN(COMMENT); ECHO;}
+<COMMENT>\n	    {BEGIN(INITIAL); ECHO;}
+<COMMENT>.          {ECHO;}
+<INITIAL>[AGTC]|-   {BEGIN(SEQUENCE); fb_clear(); fb_push(*yytext);}
+<SEQUENCE>[AGTC]|-  {fb_push(*yytext);}
+<SEQUENCE>[;>]	    {BEGIN(COMMENT); report_sequence();}
+<SEQUENCE><<EOF>>   {report_sequence(); yyterminate();}
+<*>.|\n 	    {/* default rule - gobble */}

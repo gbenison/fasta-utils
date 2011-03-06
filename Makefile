@@ -1,7 +1,10 @@
 
 CFLAGS=-g
 
-all: fastacount fastagap fastatail fastahead fastalint
+all: fastacount fastagap fastatail fastahead fastalint fastacomplement
+
+fastacomplement: fastacomplement.yy.o buffer.o
+	gcc -o$@ $^ -lfl
 
 fastalint: fastalint.yy.o
 	gcc -o$@ $< -lfl
