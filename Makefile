@@ -1,10 +1,11 @@
 
-CFLAGS=-g
+CFLAGS=-g `pkg-config --cflags glib-2.0`
+LDFLAGS=`pkg-config --libs glib-2.0`
 
 all: fastacount fastagap fastatail fastahead fastalint fastacomplement
 
 fastacomplement: fastacomplement.yy.o buffer.o
-	gcc -o$@ $^ -lfl
+	gcc -o$@ $(LDFLAGS) $^ -lfl
 
 fastalint: fastalint.yy.o
 	gcc -o$@ $< -lfl

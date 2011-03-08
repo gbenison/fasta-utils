@@ -8,10 +8,10 @@
 %x SEQUENCE
 
 %{
-  extern void  fb_clear();
-  extern void  fb_push(char);
-  extern int   fb_count;
-  extern char  fb_peek(int);
+  #include <glib.h>
+
+  GList *buffer = NULL;
+  #define PUSH {buffer = g_list_prepend(buffer, (gpointer)(int)(*yytext));}
 
   static const int column_width = 40;
 
@@ -28,14 +28,14 @@
 
   static void report_sequence()
   {
-    int i;
-    for (i = 0; i < fb_count; ++i)
+    int i = 0;
+    GList *ptr;
+    for (ptr = buffer; ptr != NULL; ptr = ptr->next, i++)
     {
       if ((i > 0) && ((i % column_width) == 0))
         putchar('\n');
-      putchar(complement(fb_peek(fb_count - i - 1)));
+      putchar(complement((char)GPOINTER_TO_UINT(ptr->data)));
     }
-    fb_clear();
   }
 %}
 
@@ -43,8 +43,8 @@
 <INITIAL>[;>]	    {BEGIN(COMMENT); ECHO;}
 <COMMENT>\n	    {BEGIN(INITIAL); ECHO;}
 <COMMENT>.          {ECHO;}
-<INITIAL>[AGTC]|-   {BEGIN(SEQUENCE); fb_clear(); fb_push(*yytext);}
-<SEQUENCE>[AGTC]|-  {fb_push(*yytext);}
+<INITIAL>[AGTC]|-   {BEGIN(SEQUENCE); g_list_free(buffer); buffer = NULL; PUSH;}
+<SEQUENCE>[AGTC]|-  {PUSH;}
 <SEQUENCE>[;>]	    {BEGIN(COMMENT); report_sequence();}
 <SEQUENCE><<EOF>>   {report_sequence(); yyterminate();}
 <*>.|\n 	    {/* default rule - gobble */}
