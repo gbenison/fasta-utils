@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Usage: amplify <template.fasta> <left-primer.fasta> <right-primer.fasta>
+#
+# Cuts out the portion of 'template.fasta' _roughly_ matching the region
+# amplified by left-primer and right-primer.
+#
+# To get the exact amplicon -- use your editor! Sorry!
+#
+
+PREFIX=`dirname $0`;
+TEMPLATE=$1;
+LEFT_PRIMER=$2;
+RIGHT_PRIMER=$3;
+
+start=`cat $LEFT_PRIMER $TEMPLATE | kalign -e100 2>/dev/null | ${PREFIX}/fastagap`;
+
+end=`(cat $RIGHT_PRIMER | ${PREFIX}/fastacomplement; cat $TEMPLATE) | kalign -e100 2>/dev/null | ${PREFIX}/fastagap`;
+
+cat $TEMPLATE | ${PREFIX}/fastahead $end | ${PREFIX}/fastatail $start | ${PREFIX}/fastalint;
+
+
