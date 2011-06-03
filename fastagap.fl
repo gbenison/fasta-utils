@@ -6,6 +6,17 @@
 %x SEQUENCE
 
 %{
+	#include <getopt.h>
+
+	static const struct option my_options[] =
+	{
+		{"verbose",	no_argument,	NULL,	'v'},
+		{0,0,0,0}
+	};
+
+	int verbose_mode = 0; /* operate in verbose mode? */
+	int first_non_gap = 0;
+
 	int seq_idx  = 0;  /* Sequence currently being processed */
         int pos_idx  = 0;  /* Position (gap or base) within sequence */
         int n_contig = 0;  /* Number of contiguous non-gaps in this chunk */
@@ -29,17 +40,35 @@
                   n_contig = 0;
                   pos_idx = 0;
 		  seq_idx++;
-		  printf("Sequence %d:\n", seq_idx);
+		  if (verbose_mode) printf("Sequence %d:\n", seq_idx);
                  }
-<SEQUENCE>[AGTC] {++n_contig; ++pos_idx;}
-<SEQUENCE>-      { report_last_contig();
+<SEQUENCE>[AGTC] {++n_contig; ++pos_idx;
+		  if (first_non_gap == 0) first_non_gap = pos_idx;}
+<SEQUENCE>-      { if (verbose_mode) report_last_contig();
                    n_contig = 0;
 		   pos_idx++;
                  }
 <SEQUENCE>[;>]   {BEGIN(COMMENT);
-                  report_last_contig();
+                  if (verbose_mode) report_last_contig();
                   n_contig = 0; pos_idx = 0;
                  }
-<SEQUENCE><<EOF>> { report_last_contig(); yyterminate(); }
+<SEQUENCE><<EOF>> { if (verbose_mode) report_last_contig(); yyterminate(); }
 <*>.|\n          { /* default rule -- gobble */ }
 
+%%
+
+int
+main(int argc, char *argv[])
+{
+  /* option parsing */
+  while (1)
+  {
+	int option_idx = 0;
+	int code = getopt_long(argc, argv, "v", my_options, &option_idx);
+	if (code == -1) break;
+	else if (code == 'v') verbose_mode = 1;
+  }
+
+  yylex();
+  if (!verbose_mode) printf("%d", first_non_gap);
+}
