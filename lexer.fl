@@ -1,0 +1,57 @@
+/*
+ * Lexer core reads FASTA input and passes it to handlers.
+ */
+
+%{
+   #include <getopt.h>
+
+   extern const struct option my_options[];
+   extern char* my_optstring;
+
+   extern void process_args(int, char*[]);
+   extern void process_option(int, char*);
+   extern void post_process(void);
+
+   extern void init_sequence(void);
+   extern void handle_sequence(char);
+   extern void terminate_sequence(void);
+
+   extern void init_comment(void);
+   extern void handle_comment(char);
+   extern void terminate_comment(void);
+%}
+
+%x COMMENT
+%x SEQUENCE
+
+%%
+
+<INITIAL>[;>]     { init_comment(); BEGIN(COMMENT); }
+<COMMENT>.        { handle_comment(*yytext); }
+<COMMENT>\n       { terminate_comment(); BEGIN(INITIAL); }
+<INITIAL>[A-Z]|-  { BEGIN(SEQUENCE); init_sequence(); unput(*yytext); }
+<SEQUENCE>[A-Z]|- { handle_sequence(*yytext); }
+<SEQUENCE>[;>]    { terminate_sequence(); init_comment(); BEGIN(COMMENT); }
+<SEQUENCE><<EOF>> { terminate_sequence(); yyterminate(); }
+<*>.|\n           { /* default rule - gobble */ }
+
+%%
+
+int
+main(int argc, char *argv[])
+{
+   while (1)
+   {
+      int option_idx = 0;
+      int code = 
+        getopt_long(argc, argv, my_optstring, my_options, &option_idx);
+      if (code == -1) break;
+      else process_option(code, optarg);
+   } 
+  
+   process_args(optind, argv);
+   yylex();
+   post_process();
+
+   return 0;
+}

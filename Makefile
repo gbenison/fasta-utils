@@ -22,8 +22,8 @@ fastatail: fastatail.yy.c
 fastahead: fastahead.yy.c
 	gcc -o$@ $< -lfl
 
-fastacount: fastacount.yy.c
-	gcc -o$@ $< -lfl
+fastacount: lexer.yy.o fastacount.o firstin.o
+	gcc -o$@ $^ -lfl
 
 fastagap: fastagap.yy.c
 	gcc -o$@ $< -lfl
