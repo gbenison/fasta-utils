@@ -11,8 +11,8 @@ fastacomplement: fastacomplement.yy.o
 fastastack: fastastack.yy.o
 	gcc -o$@ $(LDFLAGS) $^ -lfl
 
-fastalint: fastalint.yy.o
-	gcc -o$@ $< -lfl
+fastalint: fastalint.o firstin.o lexer.yy.o
+	gcc -o$@ $^ -lfl
 
 fastatail: fastatail.o lexer.yy.o
 	gcc -o$@ $^ -lfl

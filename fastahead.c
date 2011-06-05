@@ -42,8 +42,9 @@ void handle_sequence(char c)
     }
 }
 
-/* comments are echoed */
 void terminate_sequence() { putchar('\n'); }
+
+/* comments are echoed */
 void init_comment() { printf("> "); }
 void handle_comment(char c) { putchar(c); }
 void terminate_comment() { putchar('\n'); }
