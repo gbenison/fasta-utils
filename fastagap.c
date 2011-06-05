@@ -5,6 +5,7 @@
 #include <assert.h>
 
 int verbose_mode = 0;
+int sequence_idx = 0;
 
 int exon_start = 0;
 int exon_mode = 0;
@@ -40,7 +41,7 @@ void process_option(int code, char *optarg) {
 
 void post_process() {}
 
-void init_sequence() { exon_mode = 0; idx = 0; }
+void init_sequence() { exon_mode = 0; idx = 0; sequence_idx++; }
 
 void
 handle_sequence(char c)
@@ -66,7 +67,7 @@ terminate_sequence()
     {
       if (exon_mode) report_exon(idx);
     }
-  else
+  else if (sequence_idx == 1)
     printf ("%d", first_exon_idx);
 }
 
