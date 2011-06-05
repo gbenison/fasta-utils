@@ -14,8 +14,8 @@ fastastack: fastastack.yy.o
 fastalint: fastalint.yy.o
 	gcc -o$@ $< -lfl
 
-fastatail: fastatail.yy.c
-	gcc -o$@ $< -lfl
+fastatail: fastatail.o lexer.yy.o
+	gcc -o$@ $^ -lfl
 
 fastahead: fastahead.o lexer.yy.o
 	gcc -o$@ $^ -lfl
