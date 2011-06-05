@@ -8,7 +8,7 @@
    extern const struct option my_options[];
    extern char* my_optstring;
 
-   extern void process_args(int, char*[]);
+   extern void process_args(int, int, char*[]);
    extern void process_option(int, char*);
    extern void post_process(void);
 
@@ -49,7 +49,7 @@ main(int argc, char *argv[])
       else process_option(code, optarg);
    } 
   
-   process_args(optind, argv);
+   process_args(optind, argc, argv);
    yylex();
    post_process();
 

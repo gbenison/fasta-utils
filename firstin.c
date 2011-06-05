@@ -4,7 +4,7 @@
 extern FILE *yyin;
 
 void
-process_args(int argc, char *argv[])
+process_args(int optind, int argc, char *argv[])
 {
-  yyin = (argc < 1) ? stdin : fopen(argv[1], "r");
+  yyin = (optind < argc) ? fopen(argv[optind], "r") : stdin;
 }

@@ -25,8 +25,8 @@ fastahead: fastahead.yy.c
 fastacount: lexer.yy.o fastacount.o firstin.o
 	gcc -o$@ $^ -lfl
 
-fastagap: fastagap.yy.c
-	gcc -o$@ $< -lfl
+fastagap: lexer.yy.o fastagap.o firstin.o
+	gcc -o$@ $^ -lfl
 
 %.yy.c:%.fl
 	flex -o$@ $<
