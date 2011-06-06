@@ -12,9 +12,11 @@ PREFIX=`dirname $0`;
 TEMPLATE=$1;
 LEFT_PRIMER=$2;
 RIGHT_PRIMER=$3;
-RIGHT_PRIMER_LENGTH=`${PREFIX}/fastacount $RIGHT_PRIMER`;
 
-start=`cat $LEFT_PRIMER $TEMPLATE | kalign -e100 -gpo 100 2>/dev/null | ${PREFIX}/fastagap`;
+RIGHT_PRIMER_LENGTH=`${PREFIX}/fastacount $RIGHT_PRIMER`;
+LEFT_PRIMER_LENGTH=`${PREFIX}/fastacount $LEFT_PRIMER`;
+
+start=`cat $TEMPLATE $LEFT_PRIMER | kalign -e100 -gpo 100 2>/dev/null | ${PREFIX}/fastagap`;
 
 end=$((`(cat $RIGHT_PRIMER | ${PREFIX}/fastacomplement; cat $TEMPLATE) | kalign -e100 2>/dev/null | ${PREFIX}/fastagap` + RIGHT_PRIMER_LENGTH));
 
