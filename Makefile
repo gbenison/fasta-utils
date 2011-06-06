@@ -8,7 +8,7 @@ all: fastacount fastagap fastatail fastahead fastalint \
 fastacomplement: lexer.yy.o seekable.o fastacomplement.o firstin.o
 	gcc -o$@ $^ -lfl
 
-fastastack: fastastack.yy.o
+fastastack: fastastack.o lexer.yy.o seekable.o firstin.o
 	gcc -o$@ $(LDFLAGS) $^ -lfl
 
 fastalint: fastalint.o firstin.o lexer.yy.o

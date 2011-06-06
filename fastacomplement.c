@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "parameter.h"
 
-const char *my_optstring = "v";
+const char *my_optstring = "";
 const struct option my_options[] = {{0,0,0,0}};
 
 /* FIXME doesn't handle lower-case well */
