@@ -24,7 +24,9 @@ int comment_max_length;
 
 #define PUSH_ARRAY(name, c) {\
   if ((name##_ptr - name) >= (name##_max_length - 1))  	      \
-    {name##_max_length *= 2; name = realloc(name, name##_max_length); } \
+    {name##_max_length *= 2; \
+     int len = name##_ptr - name; \
+     name = realloc(name, name##_max_length); name##_ptr = name + len;} \
   *name##_ptr = c; ++name##_ptr; }
 
 extern void process_sequence(char*, char*);
