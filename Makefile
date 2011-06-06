@@ -5,8 +5,8 @@ LDFLAGS=`pkg-config --libs glib-2.0`
 all: fastacount fastagap fastatail fastahead fastalint \
      fastacomplement fastastack
 
-fastacomplement: fastacomplement.yy.o
-	gcc -o$@ $(LDFLAGS) $^ -lfl
+fastacomplement: lexer.yy.o seekable.o fastacomplement.o firstin.o
+	gcc -o$@ $^ -lfl
 
 fastastack: fastastack.yy.o
 	gcc -o$@ $(LDFLAGS) $^ -lfl
