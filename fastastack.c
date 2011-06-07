@@ -37,7 +37,7 @@ void post_process()
        comment_ptr = comment_ptr->next, sequence_ptr = sequence_ptr->next)
     {
       int i;
-      /* FIXME report comment */
+      /* report comment */
       char *comment = (char*)(comment_ptr->data);
       for (i = 0; i < comment_max_width; ++i)
 	if (*comment) putchar(*comment++); else putchar('.');
