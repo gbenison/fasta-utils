@@ -2,22 +2,46 @@
 #
 # Usage: amplify <template.fasta> <left-primer.fasta> <right-primer.fasta>
 #
-# Cuts out the portion of 'template.fasta' _roughly_ matching the region
-# amplified by left-primer and right-primer.
-#
-# To get the exact amplicon -- use your editor! Sorry!
-#
+# Performs a 'virtual PCR reaction' on template.fasta using left and right
+# primers; returns amplified sequence
+# 
 
 PREFIX=`dirname $0`;
 TEMPLATE=$1;
 LEFT_PRIMER=$2;
 RIGHT_PRIMER=$3;
-RIGHT_PRIMER_LENGTH=`${PREFIX}/fastalength $RIGHT_PRIMER`;
 
-start=`cat $LEFT_PRIMER $TEMPLATE | kalign -e100 2>/dev/null | ${PREFIX}/fastagap`;
+ANNEAL="kalign -e100 -gpo 100"
 
-end=$((`(cat $RIGHT_PRIMER | ${PREFIX}/fastacomplement; cat $TEMPLATE) | kalign -e100 2>/dev/null | ${PREFIX}/fastagap` + RIGHT_PRIMER_LENGTH));
+RIGHT_PRIMER_LENGTH=`${PREFIX}/fastacount $RIGHT_PRIMER`;
+LEFT_PRIMER_LENGTH=`${PREFIX}/fastacount $LEFT_PRIMER`;
 
-cat $TEMPLATE | ${PREFIX}/fastahead $end | ${PREFIX}/fastatail $start | ${PREFIX}/fastalint;
+# do an initial cut with sloppy primer ends
+primer_align_start=`cat $LEFT_PRIMER $TEMPLATE | $ANNEAL 2>/dev/null \
+      | ${PREFIX}/fastagap`;
 
+end=$((`(cat $RIGHT_PRIMER | ${PREFIX}/fastacomplement; cat $TEMPLATE) \
+      | $ANNEAL 2>/dev/null | ${PREFIX}/fastagap` + RIGHT_PRIMER_LENGTH));
 
+tmpfile=`mktemp`;
+
+cat $TEMPLATE | ${PREFIX}/fastahead $end \
+              | ${PREFIX}/fastatail $primer_align_start > $tmpfile;
+
+tmpfile2=`mktemp`;
+
+# snip left leader sequence
+(cat $LEFT_PRIMER;
+ cat $tmpfile $LEFT_PRIMER | $ANNEAL 2>/dev/null \
+     | ${PREFIX}/fastatail $LEFT_PRIMER_LENGTH ) \
+ | ${PREFIX}/fastacat > $tmpfile2;
+
+# where does the right primer start?
+right_junction=`(${PREFIX}/fastacomplement $RIGHT_PRIMER; cat $tmpfile2) \
+  | $ANNEAL 2>/dev/null | ${PREFIX}/fastagap`;
+
+(cat $tmpfile2 | ${PREFIX}/fastahead $((right_junction - 1)); \
+  ${PREFIX}/fastacomplement $RIGHT_PRIMER) | ${PREFIX}/fastacat;
+
+rm $tmpfile;
+rm $tmpfile2;

@@ -1,0 +1,2 @@
++ Bug: fastastack seems to choke on blank lines in input
++ consider abstracting over fastahead, fastatail
