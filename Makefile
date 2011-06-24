@@ -3,9 +3,12 @@ CFLAGS=-g `pkg-config --cflags glib-2.0`
 LDFLAGS=`pkg-config --libs glib-2.0`
 
 all: fastacount fastagap fastatail fastahead fastalint \
-     fastacomplement fastastack fastacat fastaorf
+     fastacomplement fastastack fastacat fastaorf fastatranslate
 
 fastaorf: fastaorf.hs
+	ghc -o $@ $^
+
+fastatranslate: fastatranslate.hs
 	ghc -o $@ $^
 
 fastacomplement: lexer.yy.o seekable.o fastacomplement.o firstin.o
