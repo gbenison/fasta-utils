@@ -10,3 +10,5 @@ fastalength
 README.branch
 pGFPe-Ler57.fasta
 fastacat
+*.hi
+fastaorf
