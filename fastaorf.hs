@@ -23,7 +23,8 @@ allSubStrings "" = [""]
 allSubStrings str = str:(allSubStrings (tail str))
 
 allOrfs::String->[String]
-allOrfs = (map readOrf) . (filter isStartCodon) . allSubStrings
+allOrfs = (filter (((<) 80) . length))
+           . (map readOrf) . (filter isStartCodon) . allSubStrings
 
 findOrfs::Sequence->[Sequence]
 findOrfs (Sequence comment seq)
