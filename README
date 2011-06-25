@@ -2,7 +2,7 @@ fasta-utils is a collection of command-line utilities for editing and
 viewing DNA and protein sequences.  All fasta* programs take input
 (from stdin) in FASTA format and many also produce output in FASTA
 format, allowing them to be chained together with pipes.  Here is a
-list of the programs and a short list of what they do:
+list of the programs and a short description of what they do:
 
 fastacat             Catenate all sequences into one sequence
 fastacomplement	     Replace each sequence with its reverse complement
