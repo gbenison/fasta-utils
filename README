@@ -1,5 +1,24 @@
+fasta-utils is a collection of command-line utilities for editing and
+viewing DNA and protein sequences.  All fasta* programs take input
+(from stdin) in FASTA format and many also produce output in FASTA
+format, allowing them to be chained together with pipes.  Here is a
+list of the programs and a short list of what they do:
 
-Various utilities for manipulating DNA sequence files in FASTA format.
+fastacat             Catenate all sequences into one sequence
+fastacomplement	     Replace each sequence with its reverse complement
+fastacount	     Report sequence length
+fastadigest	     Split sequences at restriction sites
+fastagap	     Report positions of gaps in sequences
+fastahead	     Echo only the first part of sequences
+fastalint	     Reformat sequences to standard display width
+fastaorf	     Find open reading frames
+fastastack	     Interleave sequences for 'side-by-side' comparison
+fastatail	     Drop the first 'n' bases
+fastatranslate	     Convert DNA sequences to one-letter protein sequences     
+amplify		     Predict PCR product from primers and template
 
-GCB 23feb11
-
+The 'amplify' program for generating predicted PCR products is useful
+for designing primers and cloning strategies and is an example of how
+the core fasta* utilities can be combined using pipes for more complex
+tasks.  It depends on the 'kalign' program, available at:
+http://www.ebi.ac.uk/Tools/msa/kalign/

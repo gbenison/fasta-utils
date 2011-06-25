@@ -1,0 +1,5 @@
+Just a Makefile for now!
+
+Some of the programs are written in Haskell; you will need a Haskell
+compiler to build them.  The Makefile currently expects ghc -
+you can obtain it from: http://www.haskell.org/ghc
