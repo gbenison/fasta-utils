@@ -4,7 +4,10 @@ LDFLAGS=`pkg-config --libs glib-2.0`
 
 all: fastacount fastagap fastatail fastahead fastalint \
      fastacomplement fastastack fastacat fastaorf \
-     fastatranslate fastadigest
+     fastatranslate fastadigest fastasel
+
+fastasel: fastasel.hs
+	ghc -o $@ $^
 
 fastaorf: fastaorf.hs
 	ghc -o $@ $^
