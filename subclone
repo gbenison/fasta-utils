@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# GCB 24oct11
+#
+# Usage: subclone <vector> <insert> <enzyme 1> <enzyme 2>
+#
+# Cut both vector and insert with both enzymes.
+#
+# Replace 2nd fragment of vector with 2nd fragment of insert;
+# and ligate.
+
+basedir=`dirname $0`;
+
+(cat $1 | ${basedir}/fastadigest $3 $4 | ${basedir}/fastasel 1; \
+ cat $2 | ${basedir}/fastadigest $3 $4 | ${basedir}/fastasel 2; \
+ cat $1 | ${basedir}/fastadigest $3 $4 | ${basedir}/fastasel 3;) | \
+${basedir}/fastacat | ${basedir}/fastalint
+
