@@ -1,0 +1,7 @@
+#!/bin/sh
+# GCB 24oct11 generate an MD5 sum of just the sequence, skipping the header and any whitespace
+
+basedir=`dirname $0`;
+
+${basedir}/fastalint $1 | egrep -v '^>' | perl -ane '{chomp; print;}' | md5sum
+
