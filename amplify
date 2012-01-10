@@ -11,34 +11,43 @@ TEMPLATE=$1;
 LEFT_PRIMER=$2;
 RIGHT_PRIMER=$3;
 
-ANNEAL="kalign -e100 -gpo 100"
+ANNEAL="kalign -e10 -gpo 10 -t0"
+test x$DEBUG = "x" && exec 2>/dev/null;
 
+echo "============== DETERMINING PRIMER LENGTHS =====================" 1>&2;
 RIGHT_PRIMER_LENGTH=`${PREFIX}/fastacount $RIGHT_PRIMER`;
+echo "right primer length = $RIGHT_PRIMER_LENGTH" 1>&2;
 LEFT_PRIMER_LENGTH=`${PREFIX}/fastacount $LEFT_PRIMER`;
+echo "left primer length = $LEFT_PRIMER_LENGTH" 1>&2;
 
-# do an initial cut with sloppy primer ends
-primer_align_start=`cat $LEFT_PRIMER $TEMPLATE | $ANNEAL 2>/dev/null \
+echo "============== INITIAL CUT WITH SLOPPY ENDS =====================" 1>&2;
+primer_align_start=`cat $LEFT_PRIMER $TEMPLATE | $ANNEAL  \
       | ${PREFIX}/fastagap`;
 
 end=$((`(cat $RIGHT_PRIMER | ${PREFIX}/fastacomplement; cat $TEMPLATE) \
-      | $ANNEAL 2>/dev/null | ${PREFIX}/fastagap` + RIGHT_PRIMER_LENGTH));
+      | $ANNEAL  | ${PREFIX}/fastagap` + RIGHT_PRIMER_LENGTH));
+echo "primer align start = $primer_align_start" 1>&2;
+echo "primer align end = $end" 1>&2;
 
 tmpfile=`mktemp`;
 
 cat $TEMPLATE | ${PREFIX}/fastahead $end \
               | ${PREFIX}/fastatail $primer_align_start > $tmpfile;
+tmpfile_length=`${PREFIX}/fastacount < $tmpfile`;
+echo "Created first temporary file $tmpfile with length $tmpfile_length" 1>&2;
 
 tmpfile2=`mktemp`;
 
 # snip left leader sequence
 (cat $LEFT_PRIMER;
- cat $tmpfile $LEFT_PRIMER | $ANNEAL 2>/dev/null \
+ cat $tmpfile $LEFT_PRIMER | $ANNEAL  \
      | ${PREFIX}/fastatail $LEFT_PRIMER_LENGTH ) \
  | ${PREFIX}/fastacat > $tmpfile2;
 
-# where does the right primer start?
+echo "================ DETERMINE POSITION OF RIGHT JUNCTION ===========" 1>&2;
 right_junction=`(${PREFIX}/fastacomplement $RIGHT_PRIMER; cat $tmpfile2) \
-  | $ANNEAL 2>/dev/null | ${PREFIX}/fastagap`;
+  | $ANNEAL  | ${PREFIX}/fastagap`;
+echo "right junction = $right_junction" 1>&2;
 
 (cat $tmpfile2 | ${PREFIX}/fastahead $((right_junction - 1)); \
   ${PREFIX}/fastacomplement $RIGHT_PRIMER) | ${PREFIX}/fastacat;
