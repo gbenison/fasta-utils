@@ -90,6 +90,8 @@ cutCatalog str = select (map toLower str)
                        select "kpni"  = CutSite "GGTAC" "C"
                        select "ncoi"  = CutSite "C" "CATGG"
                        select "xhoi"  = CutSite "C" "TCGAG"
+                       select "xbai"  = CutSite "T" "CTAGA"
+                       select "ndei"  = CutSite "CA" "TATG"
                        
 cutWithMany::[CutSite]->[Sequence]->[Sequence]
 cutWithMany sites sequences = foldr op sequences sites
