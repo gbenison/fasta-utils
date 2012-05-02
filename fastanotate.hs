@@ -90,5 +90,6 @@ allOrfs seq = map (\(s, idx) -> (idx, orfLength s)) $ filter (isStartCodon . fst
 readSequences::[Char]->[Sequence]
 readSequences = (map cleanSequence) . groupSequences . lines        
 
-main = interact $
-                unlines . (map (concat . (map show . filter ((\(start, length) -> length > minLength)) . allOrfs))) . readSequences
+main = interact $ unlines . (map printOrfs) . readSequences
+  where printOrfs = concat . (map show . filter ((\(start, length) -> length > minLength)) . allOrfs)
+        
