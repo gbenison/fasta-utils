@@ -36,6 +36,12 @@ isStopCodon ('T':'A':'A':xs) = True
 isStopCodon ('T':'G':'A':xs) = True
 isStopCodon _ = False
 
+orfLength::(Integral a)=>[Char]->a
+orfLength seq = iter 0 seq
+  where iter n seq | length seq < 3 = n
+                   | isStopCodon seq = n
+                   | otherwise = iter (n + 1)(drop 3 seq)
+                                               
 readOrf::[Char]->[Char]
 readOrf seq | length seq < 3 = ""
 readOrf seq | isStopCodon seq = ""
@@ -47,8 +53,42 @@ minLength = 40
 
 -- given a prefix string, position argument, echo position
 -- and append orf and length
-orfPos::(Integral a)=>([Char],a)->([Char],a,a)
+-- orfPos::(Integral a)=>([Char],a)->([Char],a,a)
 
-allOrfs::String->[String]
-allOrfs = (filter (((<) minLength) . length)) . (map readOrf)
-           . (filter isStartCodon) . tails
+data Sequence = Sequence [Char] [Char]
+                deriving(Show)
+
+fcomment::Sequence->[Char]
+fcomment (Sequence c _) = c
+
+fsequence::Sequence->[Char]
+fsequence (Sequence _ s) = s
+
+cleanSequence::Sequence->Sequence
+cleanSequence (Sequence comment seq)  = Sequence comment (foldr helper "" seq)
+  where helper 'a' prev = 'A':prev
+        helper 'A' prev = 'A':prev
+        helper 't' prev = 'T':prev
+        helper 'T' prev = 'T':prev
+        helper 'g' prev = 'G':prev
+        helper 'G' prev = 'G':prev
+        helper 'C' prev = 'C':prev
+        helper 'c' prev = 'C':prev
+        helper '-' prev = '-':prev
+        helper _ prev = prev
+        
+groupSequences::[[Char]]->[Sequence]
+groupSequences = (tail . foldr op [Sequence "" ""])
+  where op str ((Sequence _ seq):xs) | isComment str = (Sequence "" ""):(Sequence str seq):xs
+        op str ((Sequence _ seq):xs) = (Sequence "" (str++seq)):xs
+
+-- from a sequence string, derive a list of all orf's as (start, length) pairs
+allOrfs::(Integral a)=>Sequence->[(a, a)]
+allOrfs seq = map (\(s, idx) -> (idx, orfLength s)) $ filter (isStartCodon . fst) starts
+  where starts = zip (tails (fsequence seq)) [1..]
+
+readSequences::[Char]->[Sequence]
+readSequences = (map cleanSequence) . groupSequences . lines        
+
+main = interact $
+                unlines . (map (concat . (map show . filter ((\(start, length) -> length > minLength)) . allOrfs))) . readSequences
