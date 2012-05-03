@@ -86,10 +86,32 @@ groupSequences = (tail . foldr op [Sequence "" ""])
 allOrfs::(Integral a)=>Sequence->[(a, a)]
 allOrfs seq = map (\(s, idx) -> (idx, orfLength s)) $ filter (isStartCodon . fst) starts
   where starts = zip (tails (fsequence seq)) [1..]
+        
+-- do these two ORF's overlap?
+overlap::(Integral a)=>(a, a)->(a, a)->Bool
+overlap (s1, _)(s2, l2) | s1 >= s2 && s1 <= (s2 + l2) = True
+overlap (s1,l1)(s2, _) | s2 >= s1 && s2 <= (s1 + l1) = True
+overlap _ _ = False
+
+not_overlap x y = not $ overlap x y
+
+-- A naive coloring algorithm; brute force exhaustive search
+naiveColor::(a->a->Bool)->[a]->[[a]]
+naiveColor connected xs | null rest = [first]
+                        | otherwise = first:(naiveColor connected rest)
+  where (first,rest) = foldl (\(first, rest) next ->
+                               if (all (connected next) first)
+                                  then ((next:first), rest)
+                                  else (first, (next:rest)))
+                       ([],[])
+                       xs
 
 readSequences::[Char]->[Sequence]
 readSequences = (map cleanSequence) . groupSequences . lines        
 
-main = interact $ unlines . (map printOrfs) . readSequences
-  where printOrfs = concat . (map show . filter ((\(start, length) -> length > minLength)) . allOrfs)
+filterOrfs minlength = filter ((\(start,length) -> length >= minlength))
+
+main = interact $ unlines . (map (concat . (map show) . sort)) . (naiveColor not_overlap) . (filterOrfs minLength) . allOrfs . head . readSequences
+  
+  -- printOrfs = concat . (map show . filter ((\(start, length) -> length > minLength)) . allOrfs)
         
