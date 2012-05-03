@@ -40,7 +40,7 @@ orfLength::(Integral a)=>[Char]->a
 orfLength seq = iter 0 seq
   where iter n seq | length seq < 3 = n
                    | isStopCodon seq = n
-                   | otherwise = iter (n + 1)(drop 3 seq)
+                   | otherwise = iter (n + 3)(drop 3 seq)
                                                
 readOrf::[Char]->[Char]
 readOrf seq | length seq < 3 = ""
