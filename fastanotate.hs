@@ -47,6 +47,9 @@ readOrf seq | length seq < 3 = ""
 readOrf seq | isStopCodon seq = ""
 readOrf seq = (take 3 seq) ++ (readOrf (drop 3 seq))
 
+orfAt::(Integral a)=>a->[Char]->[Char]
+orfAt start seq = readOrf (drop ((fromIntegral start) - 1) seq)
+
 -- minimum length ORF that will be reported.
 -- note to self: must make this adjustable.
 minLength = 40
@@ -105,6 +108,10 @@ naiveColor connected xs | null rest = [first]
                                   else (first, (next:rest)))
                        ([],[])
                        xs
+                       
+-- Sequence translation --
+        
+--------------------------
 
 readSequences::[Char]->[Sequence]
 readSequences = (map cleanSequence) . groupSequences . lines        
@@ -115,7 +122,7 @@ makeStr::(Integral a)=>a->Char->[Char]
 makeStr n c = take (fromIntegral n) (repeat c)
 
 strOrfs::(Integral a)=>[Char]->[(a,a)]->[Char]
-strOrfs str = fst . (foldl (\(result, pos) (start,length) -> (result ++ (makeStr (start - pos) ' ') ++ (makeStr length '-'), start + length)) ("",1))
+strOrfs str = fst . (foldl (\(result, pos) (start,length) -> (result ++ (makeStr (start - pos) ' ') ++ (orfAt start str), start + length)) ("",1))
 
 padLeft::Int->[Char]->[Char]
 padLeft width str = (take (width - (length str))(repeat ' ')) ++ str
@@ -139,5 +146,5 @@ annotateSequence seq = (lineWrap displayWidth)
                         ((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor not_overlap) . (filterOrfs minLength) . allOrfs) seq)
                       
 main = interact $ unlines . annotateSequence . head . readSequences
-  -- printOrfs = concat . (map show . filter ((\(start, length) -> length > minLength)) . allOrfs)
+
         
