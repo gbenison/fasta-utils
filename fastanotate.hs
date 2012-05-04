@@ -110,7 +110,99 @@ naiveColor connected xs | null rest = [first]
                        xs
                        
 -- Sequence translation --
-        
+  
+decode "TTT" = 'F'
+decode "TTC" = 'F'
+decode "TTA" = 'L'
+decode "TTG" = 'L'
+decode "TCT" = 'S'
+decode "TCC" = 'S'
+decode "TCA" = 'S'
+decode "TCG" = 'S'
+decode "TAT" = 'Y'
+decode "TAC" = 'Y'
+decode "TAA" = '-'
+decode "TAG" = '-'
+decode "TGT" = 'C'
+decode "TGC" = 'C'
+decode "TGA" = '-'
+decode "TGG" = 'W'
+decode "CTT" = 'L'
+decode "CTC" = 'L'
+decode "CTA" = 'L'
+decode "CTG" = 'L'
+decode "CCT" = 'P'
+decode "CCC" = 'P'
+decode "CCA" = 'P'
+decode "CCG" = 'P'
+decode "CAT" = 'H'
+decode "CAC" = 'H'
+decode "CAA" = 'Q'
+decode "CAG" = 'Q'
+decode "CGT" = 'R'
+decode "CGC" = 'R'
+decode "CGA" = 'R'
+decode "CGG" = 'R'
+decode "ATT" = 'I'
+decode "ATC" = 'I'
+decode "ATA" = 'I'
+decode "ATG" = 'M'
+decode "ACT" = 'T'
+decode "ACC" = 'T'
+decode "ACA" = 'T'
+decode "ACG" = 'T'
+decode "AAT" = 'N'
+decode "AAC" = 'N'
+decode "AAA" = 'K'
+decode "AAG" = 'K'
+decode "AGT" = 'S'
+decode "AGC" = 'S'
+decode "AGA" = 'R'
+decode "AGG" = 'R'
+decode "GTT" = 'V'
+decode "GTC" = 'V'
+decode "GTA" = 'V'
+decode "GTG" = 'V'
+decode "GCT" = 'A'
+decode "GCC" = 'A'
+decode "GCA" = 'A'
+decode "GCG" = 'A'
+decode "GAT" = 'D'
+decode "GAC" = 'D'
+decode "GAA" = 'E'
+decode "GAG" = 'E'
+decode "GGT" = 'G'
+decode "GGC" = 'G'
+decode "GGA" = 'G'
+decode "GGG" = 'G'
+
+one2three 'A' = "Ala"
+one2three 'R' = "Arg"
+one2three 'N' = "Asn"
+one2three 'D' = "Asp"
+one2three 'B' = "Asx"
+one2three 'C' = "Cys"
+one2three 'E' = "Glu"
+one2three 'Q' = "Gln"
+one2three 'Z' = "Glx"
+one2three 'G' = "Gly"
+one2three 'H' = "His"
+one2three 'I' = "Ile"
+one2three 'L' = "Leu"
+one2three 'K' = "Lys"
+one2three 'M' = "Met"
+one2three 'F' = "Phe"
+one2three 'P' = "Pro"
+one2three 'S' = "Ser"
+one2three 'T' = "Thr"
+one2three 'W' = "Trp"
+one2three 'Y' = "Tyr"
+one2three 'V' = "Val"
+one2three _   = "???"
+
+translateOrf seq | length seq < 3 = ""
+                 | otherwise = ((one2three . decode . (take 3)) seq)++(translateOrf (drop 3 seq))
+
 --------------------------
 
 readSequences::[Char]->[Sequence]
@@ -122,7 +214,7 @@ makeStr::(Integral a)=>a->Char->[Char]
 makeStr n c = take (fromIntegral n) (repeat c)
 
 strOrfs::(Integral a)=>[Char]->[(a,a)]->[Char]
-strOrfs str = fst . (foldl (\(result, pos) (start,length) -> (result ++ (makeStr (start - pos) ' ') ++ (orfAt start str), start + length)) ("",1))
+strOrfs str = fst . (foldl (\(result, pos) (start,length) -> (result ++ (makeStr (start - pos) ' ') ++ (translateOrf $ orfAt start str), start + length)) ("",1))
 
 padLeft::Int->[Char]->[Char]
 padLeft width str = (take (width - (length str))(repeat ' ')) ++ str
