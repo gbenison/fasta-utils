@@ -111,7 +111,26 @@ readSequences = (map cleanSequence) . groupSequences . lines
 
 filterOrfs minlength = filter ((\(start,length) -> length >= minlength))
 
-main = interact $ unlines . (map (concat . (map show) . sort)) . (naiveColor not_overlap) . (filterOrfs minLength) . allOrfs . head . readSequences
-  
+makeStr::(Integral a)=>a->Char->[Char]
+makeStr n c = take (fromIntegral n) (repeat c)
+
+strOrfs::(Integral a)=>[Char]->[(a,a)]->[Char]
+strOrfs str = fst . (foldl (\(result, pos) (start,length) -> (result ++ (makeStr (start - pos) ' ') ++ (makeStr length '-'), start + length)) ("",1))
+
+-- Line wrap a set of lines, keeping adjacent lines adjacent.
+-- Given a sequence of lines, output the first 'n' chars of each one,
+-- followed by lineWrap of the rest.
+lineWrap::Int->[[Char]]->[[Char]]
+lineWrap width lines | all null lines = []
+                     | otherwise = (map fst cut) ++ ("" : (lineWrap width (map snd cut)))
+                                   where cut = map (splitAt width) lines
+                                         
+displayWidth=60
+                                         
+annotateSequence::Sequence->[[Char]]
+annotateSequence seq = (lineWrap displayWidth)
+                       (fsequence seq:((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor not_overlap) . (filterOrfs minLength) . allOrfs) seq)
+                      
+main = interact $ unlines . annotateSequence . head . readSequences
   -- printOrfs = concat . (map show . filter ((\(start, length) -> length > minLength)) . allOrfs)
         
