@@ -96,14 +96,12 @@ overlap (s1, _)(s2, l2) | s1 >= s2 && s1 <= (s2 + l2) = True
 overlap (s1,l1)(s2, _) | s2 >= s1 && s2 <= (s1 + l1) = True
 overlap _ _ = False
 
-not_overlap x y = not $ overlap x y
-
 -- A naive coloring algorithm; brute force exhaustive search
 naiveColor::(a->a->Bool)->[a]->[[a]]
 naiveColor connected xs | null rest = [first]
                         | otherwise = first:(naiveColor connected rest)
   where (first,rest) = foldl (\(first, rest) next ->
-                               if (all (connected next) first)
+                               if (not $ any (connected next) first)
                                   then ((next:first), rest)
                                   else (first, (next:rest)))
                        ([],[])
@@ -235,7 +233,7 @@ annotateSequence::Sequence->[[Char]]
 annotateSequence seq = (lineWrap displayWidth)
                        ((take (length (fsequence seq))(coordString 10)):
                          (fsequence seq):
-                        ((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor not_overlap) . (filterOrfs minLength) . allOrfs) seq)
+                        ((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor overlap) . (filterOrfs minLength) . allOrfs) seq)
                       
 main = interact $ unlines . annotateSequence . head . readSequences
 
