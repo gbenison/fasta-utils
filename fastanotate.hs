@@ -98,15 +98,15 @@ overlap _ _ = False
 
 -- A naive coloring algorithm; brute force exhaustive search
 naiveColor::(a->a->Bool)->[a]->[[a]]
-naiveColor connected xs | null rest = [first]
-                        | otherwise = first:(naiveColor connected rest)
-  where (first,rest) = foldl (\(first, rest) next ->
-                               if (not $ any (connected next) first)
-                                  then ((next:first), rest)
-                                  else (first, (next:rest)))
-                       ([],[])
-                       xs
-                       
+naiveColor _ [] = [[]]
+naiveColor connected xs =
+  let (first, rest) = foldl (\(first, rest) next ->
+                              if (not $ any (connected next) first)
+                                then ((next:first), rest)
+                                else (first, (next:rest)))
+                            ([],[]) xs
+  in first:(naiveColor connected rest)
+  
 -- Sequence translation --
   
 decode "TTT" = 'F'
