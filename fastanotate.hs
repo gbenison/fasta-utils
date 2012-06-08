@@ -23,6 +23,7 @@
 -- fastastack, and clique-finding.
 
 import Data.List
+import Data.Map (Map, empty, lookup, insert)
 
 isComment::[Char]->Bool
 isComment ('>':_) = True
@@ -95,6 +96,25 @@ overlap::(Integral a)=>(a, a)->(a, a)->Bool
 overlap (s1, _)(s2, l2) | s1 >= s2 && s1 <= (s2 + l2) = True
 overlap (s1,l1)(s2, _) | s2 >= s1 && s2 <= (s1 + l1) = True
 overlap _ _ = False
+
+lowestSlot::[Maybe Int]->Int
+lowestSlot xs = foldl h 1 $ sort xs
+  where h best Nothing = best
+        h best (Just x) | best == x = best + 1
+                        | otherwise = best
+                                      
+-- 'Rosen 1' coloring algorithm
+-- 'nodes' specifies the order in which to visit vertices;
+-- 'neighbors' is the adjacency list
+-- return value is a map from vertex to color
+graphColor::(Ord a)=>[a]->Map a [a]->Map a Int
+graphColor nodes neighbors =
+  foldl assignColor Data.Map.empty nodes
+    where assignColor colors node =
+            case Data.Map.lookup node neighbors of
+              Nothing -> Data.Map.insert node 1 colors
+              Just ns -> let next_color = lowestSlot $ map ((flip Data.Map.lookup) colors) ns
+                         in Data.Map.insert node next_color colors
 
 -- A naive coloring algorithm; brute force exhaustive search
 naiveColor::(a->a->Bool)->[a]->[[a]]
