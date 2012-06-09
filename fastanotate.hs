@@ -23,7 +23,7 @@
 -- fastastack, and clique-finding.
 
 import Data.List
-import Data.Map (Map, empty, lookup, insert)
+import Data.Map (Map, empty, lookup, insert, fold, foldWithKey)
 
 isComment::[Char]->Bool
 isComment ('>':_) = True
@@ -36,6 +36,11 @@ isStopCodon ('T':'A':'G':xs) = True
 isStopCodon ('T':'A':'A':xs) = True
 isStopCodon ('T':'G':'A':xs) = True
 isStopCodon _ = False
+
+data Orf = Orf {orfStart::Int, orfLen::Int} deriving (Eq, Show)
+
+instance Ord Orf where
+  compare (Orf s1 l1)(Orf s2 l2) = compare (s1,l1)(s2,l2)
 
 orfLength::(Integral a)=>[Char]->a
 orfLength seq = iter 0 seq
@@ -92,10 +97,10 @@ allOrfs seq = map (\(s, idx) -> (idx, orfLength s)) $ filter (isStartCodon . fst
   where starts = zip (tails (fsequence seq)) [1..]
         
 -- do these two ORF's overlap?
-overlap::(Integral a)=>(a, a)->(a, a)->Bool
-overlap (s1, _)(s2, l2) | s1 >= s2 && s1 <= (s2 + l2) = True
-overlap (s1,l1)(s2, _) | s2 >= s1 && s2 <= (s1 + l1) = True
-overlap _ _ = False
+overlap::Orf->Orf->Bool
+overlap (Orf s1 l1)(Orf s2 l2) | s1 >= s2 && s1 <= (s2 + l2) = True
+                               | s2 >= s1 && s2 <= (s1 + l1) = True
+                               | otherwise  = False
 
 lowestSlot::[Maybe Int]->Int
 lowestSlot xs = foldl h 1 $ sort xs
@@ -247,13 +252,39 @@ lineWrap width lines | all null lines = []
                      | otherwise = (map fst cut) ++ ("" : (lineWrap width (map snd cut)))
                                    where cut = map (splitAt width) lines
 
+-- Creation of an adjacency list of ORF's.
+-- assumes input orf's are sorted on length.
+adjacency::[Orf]->Map Orf [Orf]
+adjacency = (foldl addOne Data.Map.empty) . init . tails
+  where addOne graph (o1:orfs) =
+          Data.Map.insert o1 (takeWhile (overlap o1) orfs) graph
+          
+allNeighbors::Map a [a]->[(a,a)]
+allNeighbors = Data.Map.foldWithKey pushPairs []
+  where pushPairs k ns result = (map (\n -> (k,n)) ns) ++ result
+          
+-- Assure that, if v1 -> v2 occurs in the adjacency list,
+-- then v2 -> v1 does too
+-- normalizeAdjacency::Map a [a]->Map a [a]
+-- normalizeAdjacency m = Data.Map.fold normalize m m
+--   where normalize v m = case Data.Map.lookup v m of
+--           Nothing -> m
+--           Just ns -> foldl (ensureHas v) m ns
+--             where ensureHas dest m src =
+--                     case Data.Map.lookup src m of
+--                       Nothing -> Data.Map.insert src [dest] m
+--                       Just ns -> if dest `elem` ns
+--                                  then m
+--                                  else Data.Map.insert src (dest:ns) m
+-- 
 displayWidth=60
-                                         
+
 annotateSequence::Sequence->[[Char]]
 annotateSequence seq = (lineWrap displayWidth)
                        ((take (length (fsequence seq))(coordString 10)):
                          (fsequence seq):
-                        ((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor overlap) . (filterOrfs minLength) . allOrfs) seq)
+--                        ((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor overlap) . (filterOrfs minLength) . allOrfs) seq)
+                        ((map ((strOrfs $ fsequence seq) . sort)) . (\x->[x]) . (filterOrfs minLength) . allOrfs) seq)
                       
 main = interact $ unlines . annotateSequence . head . readSequences
 
