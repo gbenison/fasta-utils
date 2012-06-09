@@ -262,6 +262,18 @@ adjacency = (foldl addOne Data.Map.empty) . init . tails
 allNeighbors::Map a [a]->[(a,a)]
 allNeighbors = Data.Map.foldWithKey pushPairs []
   where pushPairs k ns result = (map (\n -> (k,n)) ns) ++ result
+        
+-- Ensure that the link v1 -> v2 occurs in the given adjacency list.
+ensureLink::(Ord a)=>Map a [a]->a->a->Map a [a]
+ensureLink aa v1 v2 = case Data.Map.lookup v1 aa of
+  Nothing -> Data.Map.insert v1 [v2] aa
+  Just ns -> if v2 `elem` ns then aa
+             else Data.Map.insert v1 (v2:ns) aa
+        
+-- ensure that, if v1 -> v2 appears in an adjacency list, then v2 -> v1 does too.
+normalizeAdjacency::(Ord a)=>Map a [a]->Map a [a]
+normalizeAdjacency aa = let ns = allNeighbors aa
+                        in foldl (\m (v1,v2)->ensureLink m v2 v1) aa ns
           
 -- Assure that, if v1 -> v2 occurs in the adjacency list,
 -- then v2 -> v1 does too
