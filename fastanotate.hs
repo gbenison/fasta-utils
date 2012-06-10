@@ -286,12 +286,6 @@ annotateSequence seq = let colors = colorOrfs $ Data.List.filter (orfLonger minL
                            sequence = fsequence seq
                        in lineWrap displayWidth $ (numbersFor sequence 10):sequence:(map (strOrfs $ fsequence seq) colors)
                           
---  (lineWrap displayWidth)
---                       ((take (length (fsequence seq))(coordString 10)):
---                         (fsequence seq):
---                        ((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor overlap) . (filterOrfs minLength) . allOrfs) seq)
---                        ((map ((strOrfs $ fsequence seq) . sort)) . (\x->[x]) . (filterOrfs minLength) . allOrfs) seq)
-                      
 main = interact $ unlines . annotateSequence . head . readSequences
 
         
