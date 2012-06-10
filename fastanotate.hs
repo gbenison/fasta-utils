@@ -92,8 +92,8 @@ groupSequences = (tail . foldr op [Sequence "" ""])
         op str ((Sequence _ seq):xs) = (Sequence "" (str++seq)):xs
 
 -- from a sequence string, derive a list of all orf's as (start, length) pairs
-allOrfs::(Integral a)=>Sequence->[(a, a)]
-allOrfs seq = map (\(s, idx) -> (idx, orfLength s)) $ filter (isStartCodon . fst) starts
+allOrfs::Sequence->[Orf]
+allOrfs seq = map (\(s, idx) -> Orf idx $ orfLength s) $ filter (isStartCodon . fst) starts
   where starts = zip (tails (fsequence seq)) [1..]
         
 -- do these two ORF's overlap?
@@ -121,17 +121,6 @@ graphColor nodes neighbors =
               Just ns -> let next_color = lowestSlot $ map ((flip Data.Map.lookup) colors) ns
                          in Data.Map.insert node next_color colors
 
--- A naive coloring algorithm; brute force exhaustive search
-naiveColor::(a->a->Bool)->[a]->[[a]]
-naiveColor _ [] = [[]]
-naiveColor connected xs =
-  let (first, rest) = foldl (\(first, rest) next ->
-                              if (not $ any (connected next) first)
-                                then ((next:first), rest)
-                                else (first, (next:rest)))
-                            ([],[]) xs
-  in first:(naiveColor connected rest)
-  
 -- Sequence translation --
   
 decode "TTT" = 'F'
@@ -236,8 +225,8 @@ filterOrfs minlength = filter ((\(start,length) -> length >= minlength))
 makeStr::(Integral a)=>a->Char->[Char]
 makeStr n c = take (fromIntegral n) (repeat c)
 
-strOrfs::(Integral a)=>[Char]->[(a,a)]->[Char]
-strOrfs str = fst . (foldl (\(result, pos) (start,length) -> (result ++ (makeStr (start - pos) ' ') ++ (translateOrf $ orfAt start str), start + length)) ("",1))
+strOrfs::[Char]->[Orf]->[Char]
+strOrfs str = fst . (foldl (\(result, pos) (Orf start length) -> (result ++ (makeStr (start - pos) ' ') ++ (translateOrf $ orfAt start str), start + length)) ("",1))
 
 padLeft::Int->[Char]->[Char]
 padLeft width str = (take (width - (length str))(repeat ' ')) ++ str
@@ -274,29 +263,34 @@ ensureLink aa v1 v2 = case Data.Map.lookup v1 aa of
 normalizeAdjacency::(Ord a)=>Map a [a]->Map a [a]
 normalizeAdjacency aa = let ns = allNeighbors aa
                         in foldl (\m (v1,v2)->ensureLink m v2 v1) aa ns
+                           
+partitionByColor::Map Orf Int->Int->[Orf]->[[Orf]]
+partitionByColor _ _ [] = []
+partitionByColor m idx orfs = let (first,rest) = partition (\o -> (Data.Map.lookup o m) == Just idx) orfs
+                              in first:(partitionByColor m (idx + 1) rest)
+                           
+colorOrfs::[Orf]->[[Orf]]
+colorOrfs orfs = let colorMap = graphColor orfs $ normalizeAdjacency $ adjacency orfs
+                 in partitionByColor colorMap 1 orfs
           
--- Assure that, if v1 -> v2 occurs in the adjacency list,
--- then v2 -> v1 does too
--- normalizeAdjacency::Map a [a]->Map a [a]
--- normalizeAdjacency m = Data.Map.fold normalize m m
---   where normalize v m = case Data.Map.lookup v m of
---           Nothing -> m
---           Just ns -> foldl (ensureHas v) m ns
---             where ensureHas dest m src =
---                     case Data.Map.lookup src m of
---                       Nothing -> Data.Map.insert src [dest] m
---                       Just ns -> if dest `elem` ns
---                                  then m
---                                  else Data.Map.insert src (dest:ns) m
--- 
 displayWidth=60
 
+orfLonger::Int->Orf->Bool
+orfLonger minLength (Orf _ len) = len >= minLength
+
+numbersFor::String->Int->String
+numbersFor str interval = take (length str)(coordString interval)
+
 annotateSequence::Sequence->[[Char]]
-annotateSequence seq = (lineWrap displayWidth)
-                       ((take (length (fsequence seq))(coordString 10)):
-                         (fsequence seq):
+annotateSequence seq = let colors = colorOrfs $ Data.List.filter (orfLonger minLength) $ allOrfs seq
+                           sequence = fsequence seq
+                       in lineWrap displayWidth $ (numbersFor sequence 10):sequence:(map (strOrfs $ fsequence seq) colors)
+                          
+--  (lineWrap displayWidth)
+--                       ((take (length (fsequence seq))(coordString 10)):
+--                         (fsequence seq):
 --                        ((map ((strOrfs $ fsequence seq) . sort)) . (naiveColor overlap) . (filterOrfs minLength) . allOrfs) seq)
-                        ((map ((strOrfs $ fsequence seq) . sort)) . (\x->[x]) . (filterOrfs minLength) . allOrfs) seq)
+--                        ((map ((strOrfs $ fsequence seq) . sort)) . (\x->[x]) . (filterOrfs minLength) . allOrfs) seq)
                       
 main = interact $ unlines . annotateSequence . head . readSequences
 
