@@ -281,11 +281,14 @@ orfLonger minLength (Orf _ len) = len >= minLength
 numbersFor::String->Int->String
 numbersFor str interval = take (length str)(coordString interval)
 
-annotateSequence::Sequence->[[Char]]
-annotateSequence seq = let colors = colorOrfs $ Data.List.filter (orfLonger minLength) $ allOrfs seq
-                           sequence = fsequence seq
-                       in lineWrap displayWidth $ (numbersFor sequence 10):sequence:(map (strOrfs $ fsequence seq) colors)
+addNewline::String->String
+addNewline str = str ++ "\n"
+
+annotateSequence::Sequence->String
+annotateSequence seq = let orfs   = Data.List.filter (orfLonger minLength) $ allOrfs seq
+                           colors = colorOrfs orfs
+                       in  addNewline $ show $ length colors
                           
-main = interact $ unlines . annotateSequence . head . readSequences
+main = interact $ annotateSequence . head . readSequences
 
         
