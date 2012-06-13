@@ -38,7 +38,7 @@ isStopCodon _ = False
 
 orfLength::(Integral a)=>[Char]->a
 orfLength seq = iter 0 seq
-  where iter n seq | length seq < 3 = n
+  where iter n seq | seq == "" = n
                    | isStopCodon seq = n
                    | otherwise = iter (n + 3)(drop 3 seq)
                                                
