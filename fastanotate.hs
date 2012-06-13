@@ -44,8 +44,8 @@ instance Ord Orf where
 
 orfLength::(Integral a)=>[Char]->a
 orfLength seq = iter 0 seq
-  where iter n seq | length seq < 3 = n
-                   | isStopCodon seq = n
+  where iter n "" = n
+        iter n seq | isStopCodon seq = n
                    | otherwise = iter (n + 3)(drop 3 seq)
                                                
 readOrf::[Char]->[Char]
@@ -262,7 +262,7 @@ ensureLink aa v1 v2 = case Data.Map.lookup v1 aa of
 -- ensure that, if v1 -> v2 appears in an adjacency list, then v2 -> v1 does too.
 normalizeAdjacency::(Ord a)=>Map a [a]->Map a [a]
 normalizeAdjacency aa = let ns = allNeighbors aa
-                        in foldl (\m (v1,v2)->ensureLink m v2 v1) aa ns
+                        in foldl' (\m (v1,v2)->ensureLink m v2 v1) aa ns
                            
 partitionByColor::Map Orf Int->Int->[Orf]->[[Orf]]
 partitionByColor _ _ [] = []
@@ -272,6 +272,12 @@ partitionByColor m idx orfs = let (first,rest) = partition (\o -> (Data.Map.look
 colorOrfs::[Orf]->[[Orf]]
 colorOrfs orfs = let colorMap = graphColor orfs $ normalizeAdjacency $ adjacency orfs
                  in partitionByColor colorMap 1 orfs
+                    
+                    
+chromaticNumber::[Orf]->Int
+chromaticNumber orfs = let colormap =
+                             graphColor orfs $ normalizeAdjacency $ adjacency orfs
+                       in Data.Map.fold max 0 colormap
           
 displayWidth=60
 
@@ -286,8 +292,7 @@ addNewline str = str ++ "\n"
 
 annotateSequence::Sequence->String
 annotateSequence seq = let orfs   = Data.List.filter (orfLonger minLength) $ allOrfs seq
-                           colors = colorOrfs orfs
-                       in  addNewline $ show $ length colors
+                       in  addNewline $ show $ chromaticNumber orfs
                           
 main = interact $ annotateSequence . head . readSequences
 
